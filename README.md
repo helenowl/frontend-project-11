@@ -1,3 +1,7 @@
 ### Hexlet tests and linter status:
-[![Actions Status](https://github.com/helenowl/frontend-project-11/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/helenowl/frontend-project-11/actions)
-[![Code Coverage](https://qlty.sh/gh/helenowl/projects/frontend-project-11/coverage.svg)](https://qlty.sh/gh/helenowl/projects/frontend-project-11)
+[![Actions Status](https://github.com/helenowl/frontend-project-11/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/helenowl/frontend-project-11/actions) 
+
+<h1>RSS Agregator</h1>
+<pre>
+https://frontend-project-11-jriugq2j5-helenowls-projects.vercel.app/
+</pre>
