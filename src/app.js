@@ -3,14 +3,19 @@ import * as yup from 'yup';
 import view from './view.js';
 import i18next from 'i18next';
 import resources from './locales/index.js';
+import request from './request.js'
 
-const uiState = { modal: '', selectedPost: null };
+const proxyUrl = new URL('https://allorigins.hexlet.app/get?disableCache=true&url=')
+const uiState = { modal: [], selectedPost: null };
 const St = {
   formData: {
     listURL: [],
     validation: null,
   },
+  feedAdditionStatus: null,
   errors: {},
+  feeds: [],
+  posts: [],
 }
 
 
@@ -49,7 +54,7 @@ export default () => {
 
   const watchedObj = onChange(initialState, (path, value, previousValue) => {
     //console.log(`Путь "${path}" изменился с ${previousValue} на ${value}`);
-    view(watchedObj, path, value);
+    view(watchedObj,i18n, path, value);
   });
 
   //watchedObj.modal = 'new value';
@@ -62,10 +67,26 @@ export default () => {
     console.log(`Url "${url}" watchedObj.formData.listURL ${watchedObj.formData.listURL}`);
     validURL(url, watchedObj.formData.listURL)
       .then((link) => {
-       watchedObj.errors = {}
-       watchedObj.formData.listURL.push(link)
-       watchedObj.formData.validation = 'true' 
-       console.log(`валидный`);
+      const plUrl = new URL(proxyUrl.href + link)
+      watchedObj.feedAdditionStatus = 'start'
+      request(plUrl.href)
+      .then((data) => {
+            watchedObj.errors = {}
+            watchedObj.formData.listURL.push(link)
+            watchedObj.formData.validation = 'true'
+            console.log(`валидный`);
+            watchedObj.feedAdditionStatus = 'success'
+            const { feed, posts } = data
+            watchedObj.feeds = watchedObj.feeds.concat(feed)
+            watchedObj.posts = watchedObj.posts.concat(posts)
+            const postForUi = posts.map(({ id }) => ({ id, readIt: false }))
+            watchedObj.uiState.modal = watchedObj.uiState.modal.concat(postForUi)
+          })
+          .catch((e) => {
+            const errorKey = e.message
+            watchedObj.errors.error = i18n.t(errorKey)
+            watchedObj.feedAdditionStatus = 'failure'
+          }) 
       })
       .catch((err) => {
         //const erKey = err.message
