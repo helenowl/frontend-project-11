@@ -102,4 +102,44 @@ export default () => {
       })
 
 })
+
+const upd =  (funcRequest, feeds, stateObject) => {
+  const postsFromState = stateObject.posts
+  return Promise.all(feeds.map(({ linkForFeed, id }) => funcRequest(linkForFeed)
+    .then((data) => {
+      const { posts } = data
+      const postsForCurrentFeedFromState = postsFromState.filter(({ idFeed }) => (idFeed === id))
+      const linksCurrentPosts = postsForCurrentFeedFromState.map(({ link }) => link)
+      const newPosts = posts.filter(({ link }) => (!linksCurrentPosts.includes(link)))
+      if (newPosts.length > 0) {
+        return newPosts.map(post => ({ ...post, idFeed: id }))
+      }
+      return []
+    })
+    .catch(() => {
+      console.error(`Error when processing feed with ID: ${id}`)
+      return []
+    })))
+    .then(results => results.flat())
+}
+
+  const refresh = () => {
+    const { feeds, posts } = watchedObj
+    return upd(request, feeds, watchedObj)
+      .then((newPosts) => {
+        if (newPosts.length > 0) {
+          watchedObj.formData.validation = null
+          watchedObj.posts = posts.concat(newPosts)
+          const postForUi = newPosts.map(({ id }) => ({ id, readIt: false }))
+          watchedObj.uiState.modal = watchedObj.uiState.modal.concat(postForUi)
+        }
+      })
+      .catch(() => {
+        watchedObj.errors.error = i18n.t('errors.refresh_error')
+      })
+      .finally(() => {
+        setTimeout(refresh, 5000)
+      })
+  }
+  refresh()
 };
